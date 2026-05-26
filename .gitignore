@@ -1,0 +1,14 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+backend/chat.db
+
+# node
+node_modules/
+frontend/dist/
+
+# editor
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,1 @@
+- [User profile](user_profile.md) — JNU capstone student building E2EE chat (React+FastAPI), prefers Korean, learning crypto step-by-step
