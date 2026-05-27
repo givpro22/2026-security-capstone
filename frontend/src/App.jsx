@@ -5,23 +5,27 @@ import ChatRoom from './components/ChatRoom'
 import { api, loadToken, setToken, getToken } from './api/client'
 import { initSodium, loadOrCreateKeypair, clearKeypair } from './crypto/keys'
 import { connectSocket } from './api/socket'
+import { handleInbound, ensureMyPrekeys, clearAllSessions } from './crypto/sessionManager'
 
 export default function App() {
-  const [me, setMe] = useState(null)        // { id, username, keypair }
-  const [users, setUsers] = useState([])    // [{ username, public_key }]
+  const [me, setMe] = useState(null)
+  const [users, setUsers] = useState([])
   const [peer, setPeer] = useState(null)
   const [wsReady, setWsReady] = useState(false)
 
   const socketRef = useRef(null)
+  // listenersRef now receives DECODED events: { kind: 'message'|'wire', from, ... }
   const listenersRef = useRef(new Set())
 
-  // Dispatcher every ChatRoom subscribes to.
   const onIncoming = useCallback((cb) => {
     listenersRef.current.add(cb)
     return () => listenersRef.current.delete(cb)
   }, [])
 
-  // Restore session from localStorage on first load.
+  function emit(event) {
+    for (const cb of listenersRef.current) cb(event)
+  }
+
   useEffect(() => {
     const token = loadToken()
     if (!token) return
@@ -30,25 +34,52 @@ export default function App() {
         await initSodium()
         const profile = await api.me()
         const kp = await loadOrCreateKeypair(profile.username)
-        // Make sure server has our current public key.
         if (profile.public_key !== kp.publicKeyB64) {
           await api.uploadPublicKey(kp.publicKeyB64)
         }
-        setMe({ id: profile.id, username: profile.username, keypair: kp })
+        setMe({
+          id: profile.id,
+          username: profile.username,
+          keypair: kp,
+          identityKeyPair: kp.identityKeyPair,
+        })
       } catch {
         setToken(null)
       }
     })()
   }, [])
 
-  // Open WebSocket once we are authenticated.
+  // Single WebSocket; all crypto handled here so it works regardless of which
+  // peer's chat is currently open.
   useEffect(() => {
     if (!me) return
     const sock = connectSocket(getToken(), {
       onOpen: () => setWsReady(true),
       onClose: () => setWsReady(false),
-      onMessage: (data) => {
-        for (const cb of listenersRef.current) cb(data)
+      onMessage: async (frame) => {
+        try {
+          const result = await handleInbound({
+            me,
+            frame,
+            sendOverSocket: (p) => sock.send(p),
+            onWire: (direction, wire) => {
+              const from = frame.from || frame.to || null
+              emit({ kind: 'wire', from, direction, wire, protocol: frame.protocol })
+            },
+          })
+          if (result) {
+            emit({
+              kind: 'message',
+              from: result.from,
+              text: result.plaintext,
+              protocol: result.protocol,
+              id: frame.id,
+            })
+          }
+        } catch (e) {
+          console.error('inbound crypto error:', e)
+          emit({ kind: 'error', from: frame.from, message: e.message })
+        }
       },
     })
     socketRef.current = sock
@@ -58,7 +89,12 @@ export default function App() {
     }
   }, [me])
 
-  // Refresh the user list periodically while logged in.
+  // Publish Signal prekeys once authenticated, so peers can initiate X3DH with us.
+  useEffect(() => {
+    if (!me) return
+    ensureMyPrekeys(me).catch((e) => console.warn('prekey publish failed:', e))
+  }, [me])
+
   useEffect(() => {
     if (!me) return
     let cancelled = false
@@ -78,6 +114,7 @@ export default function App() {
 
   function logout() {
     if (me) clearKeypair(me.username)
+    clearAllSessions()
     setToken(null)
     setMe(null)
     setUsers([])

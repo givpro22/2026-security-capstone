@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E2EE 프로토콜 비교 — Static · Noise XX · Signal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        background: #0f172a;
+        color: #f8fafc;
+        font-family: "Lato", sans-serif;
+        margin: 0;
+        padding: 32px 24px 80px;
+        min-height: 100vh;
+      }
+      h1 {
+        font-family: "Poppins", sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        text-align: center;
+      }
+      h1 .accent { color: #22d3ee; }
+      .subtitle {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 15px;
+        margin-bottom: 24px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+      .controls button {
+        background: #22d3ee;
+        color: #0f172a;
+        border: none;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+      }
+      .controls button:hover { transform: translateY(-1px); }
+      .controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+      .controls button.secondary {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #334155;
+      }
+      .controls .step-info {
+        color: #94a3b8;
+        font-size: 14px;
+        font-family: "JetBrains Mono", monospace;
+        min-width: 120px;
+        text-align: center;
+      }
+
+      .legend {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      .legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      @media (max-width: 1100px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+
+      .col {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        min-height: 600px;
+      }
+      .col h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 20px;
+        margin: 0 0 4px;
+        color: #f1f5f9;
+      }
+      .col .tag {
+        display: inline-block;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .tag.now    { background: #1e293b; color: #fbbf24; border: 1px solid #475569; }
+      .tag.noise  { background: #1e293b; color: #a78bfa; border: 1px solid #475569; }
+      .tag.signal { background: #1e293b; color: #34d399; border: 1px solid #475569; }
+      .col .desc {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+
+      .messages {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-grow: 1;
+      }
+      .msg {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 0.4s, max-height 0.4s, padding 0.4s, margin 0.4s, border-color 0.4s;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin: 0;
+        border-color: transparent;
+      }
+      .msg.visible {
+        opacity: 1;
+        max-height: 400px;
+        padding: 12px;
+        border-color: #1e293b;
+      }
+      .msg.active {
+        border-color: #22d3ee;
+        box-shadow: 0 0 0 1px #22d3ee, 0 4px 20px rgba(34, 211, 238, 0.15);
+      }
+      .msg .arrow {
+        color: #94a3b8;
+        font-size: 11px;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .msg .arrow .step-num {
+        background: #22d3ee;
+        color: #0f172a;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+      }
+      .msg .wire {
+        background: #020617;
+        border: 1px solid #1e293b;
+        border-radius: 4px;
+        padding: 8px;
+        margin: 6px 0;
+        word-break: break-all;
+        line-height: 1.6;
+      }
+      .msg .note {
+        font-family: "Lato", sans-serif;
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+      .msg .server-sees {
+        font-family: "Lato", sans-serif;
+        font-size: 11px;
+        color: #f87171;
+        margin-top: 4px;
+        display: flex;
+        gap: 4px;
+        align-items: flex-start;
+      }
+      .msg .server-sees::before { content: "👁"; }
+
+      /* token colors */
+      .tk-e   { color: #fbbf24; font-weight: 600; }  /* ephemeral */
+      .tk-s   { color: #22d3ee; font-weight: 600; }  /* static */
+      .tk-dh  { color: #a78bfa; font-weight: 600; }  /* DH outputs */
+      .tk-ct  { color: #34d399; font-weight: 600; }  /* ciphertext */
+      .tk-mac { color: #f87171; font-weight: 600; }  /* MAC */
+      .tk-n   { color: #94a3b8; }                    /* nonce/counter */
+      .tk-kk  { color: #38bdf8; font-weight: 600; }  /* derived keys */
+
+      .state-box {
+        margin-top: 12px;
+        background: #020617;
+        border: 1px dashed #334155;
+        border-radius: 6px;
+        padding: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #94a3b8;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 0.4s, max-height 0.4s, padding 0.4s, margin 0.4s;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin: 0;
+      }
+      .state-box.visible {
+        opacity: 1;
+        max-height: 200px;
+        padding: 8px;
+        margin-top: 12px;
+      }
+      .state-box .label {
+        color: #64748b;
+        text-transform: uppercase;
+        font-size: 9px;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+      }
+      .state-box .kv { margin: 2px 0; }
+
+      .footer-summary {
+        max-width: 1600px;
+        margin: 32px auto 0;
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .footer-summary h3 {
+        font-family: "Poppins", sans-serif;
+        font-size: 16px;
+        margin: 0 0 12px;
+        color: #22d3ee;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th, td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid #1e293b;
+      }
+      th { color: #94a3b8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+      td.yes { color: #34d399; }
+      td.no  { color: #f87171; }
+      td.partial { color: #fbbf24; }
+    </style>
+  </head>
+  <body>
+    <h1>E2EE 프로토콜 비교 — <span class="accent">전송 메시지 시각화</span></h1>
+    <p class="subtitle">같은 시나리오: Alice ↔ Bob, 메시지 3개 주고받기. 각 프로토콜이 실제로 무엇을 와이어로 전송하는지 비교</p>
+
+    <div class="controls">
+      <button id="prev" class="secondary">← 이전</button>
+      <span class="step-info" id="step-info">step 0 / 7</span>
+      <button id="next">다음 →</button>
+      <button id="reset" class="secondary">리셋</button>
+      <button id="auto" class="secondary">▶ 자동 재생</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#fbbf24"></span>ephemeral key (e)</span>
+      <span><span class="dot" style="background:#22d3ee"></span>static key (s)</span>
+      <span><span class="dot" style="background:#a78bfa"></span>DH 결과 (ee, es, ...)</span>
+      <span><span class="dot" style="background:#34d399"></span>ciphertext</span>
+      <span><span class="dot" style="background:#f87171"></span>MAC/tag</span>
+      <span><span class="dot" style="background:#38bdf8"></span>파생 키 (RK/CK/MK)</span>
+    </div>
+
+    <div class="grid">
+      <!-- ============ COL 1: STATIC (CURRENT) ============ -->
+      <div class="col">
+        <h2>① Static X25519 <span style="font-size:13px;color:#94a3b8">(현재 구현)</span></h2>
+        <span class="tag now">libsodium crypto_box</span>
+        <p class="desc">
+          사용자마다 X25519 키쌍 <b>한 개</b>. 핸드셰이크 없음.
+          매 메시지마다 <span class="tk-n">random nonce</span> + <span class="tk-ct">ciphertext</span>만 전송.
+        </p>
+        <div class="messages" id="col-static">
+          <div class="msg" data-step="1">
+            <div class="arrow"><span>Alice → Server → Bob</span><span class="step-num">1</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;ciphertext: "<span class="tk-ct">7Hk2vR…</span><span class="tk-mac">+16B tag</span>",<br/>
+              &nbsp;&nbsp;nonce: "<span class="tk-n">aB1C…(24B)</span>"<br/>
+              }
+            </div>
+            <div class="note">Bob의 정적 공개키 + Alice 정적 개인키로 <code>crypto_box</code>. 매번 같은 키 사용.</div>
+            <div class="server-sees"><span>서버는 누가 누구에게 보냈는지 + 길이 + 정확한 시각을 봄. 본문은 못 봄.</span></div>
+          </div>
+
+          <div class="msg" data-step="2">
+            <div class="arrow"><span>Bob → Server → Alice</span><span class="step-num">2</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;ciphertext: "<span class="tk-ct">9Lp4zM…</span><span class="tk-mac">+16B tag</span>",<br/>
+              &nbsp;&nbsp;nonce: "<span class="tk-n">qF7H…(24B)</span>"<br/>
+              }
+            </div>
+            <div class="note">답장도 동일 구조. 두 사람 다 같은 정적 키 쌍을 영원히 재사용.</div>
+          </div>
+
+          <div class="msg" data-step="3">
+            <div class="arrow"><span>Alice → Server → Bob</span><span class="step-num">3</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;ciphertext: "<span class="tk-ct">3Xc8tN…</span><span class="tk-mac">+16B tag</span>",<br/>
+              &nbsp;&nbsp;nonce: "<span class="tk-n">mP2Q…(24B)</span>"<br/>
+              }
+            </div>
+            <div class="note" style="color:#f87171">
+              ⚠ Alice의 정적 개인키가 1년 후 유출되면 → 지금까지 저장된 모든 ciphertext 복호화 가능 (Forward Secrecy 없음)
+            </div>
+          </div>
+
+          <div class="state-box" id="state-static">
+            <div class="label">Alice의 상태</div>
+            <div class="kv">static_priv = <span class="tk-s">priv_A</span> (불변)</div>
+            <div class="kv">static_pub  = <span class="tk-s">pub_A</span> (불변)</div>
+            <div class="kv" style="color:#f87171">key rotation 없음 · session 없음</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ COL 2: NOISE XX ============ -->
+      <div class="col">
+        <h2>② Noise <span style="color:#a78bfa">XX</span> <span style="font-size:13px;color:#94a3b8">(상호 인증 + FS)</span></h2>
+        <span class="tag noise">Noise_XX_25519_ChaChaPoly_SHA256</span>
+        <p class="desc">
+          1.5 RTT 핸드셰이크로 ephemeral 키 교환. 이후 transport 메시지는 헤더 없이 ciphertext만.
+          정적 키는 <b>핸드셰이크 안에서 암호화되어</b> 전달됨.
+        </p>
+        <div class="messages" id="col-noise">
+          <div class="msg" data-step="1">
+            <div class="arrow"><span>HS msg 1: Alice → Bob</span><span class="step-num">1</span></div>
+            <div class="wire">
+              <span class="tk-e">e_A</span> (32B ephemeral pub)<br/>
+              <span style="color:#475569">— payload는 비어있음 —</span>
+            </div>
+            <div class="note">Alice가 일회용 ephemeral 키쌍 생성. 공개키만 평문으로 전송.</div>
+          </div>
+
+          <div class="msg" data-step="2">
+            <div class="arrow"><span>HS msg 2: Bob → Alice</span><span class="step-num">2</span></div>
+            <div class="wire">
+              <span class="tk-e">e_B</span> (32B)<br/>
+              <span class="tk-dh">ee = DH(e_A, e_B)</span> → ck 갱신<br/>
+              <span class="tk-ct">enc(s_B)</span> (32B + <span class="tk-mac">16B tag</span>) ← <b>Bob의 정적키를 암호화</b><br/>
+              <span class="tk-dh">es = DH(e_A, s_B)</span> → ck 갱신<br/>
+              <span class="tk-ct">enc(payload)</span> + <span class="tk-mac">16B tag</span>
+            </div>
+            <div class="note">e_B는 평문이지만 s_B는 ee로 파생된 키로 암호화 → 도청자는 Bob의 정체를 모름.</div>
+          </div>
+
+          <div class="msg" data-step="3">
+            <div class="arrow"><span>HS msg 3: Alice → Bob</span><span class="step-num">3</span></div>
+            <div class="wire">
+              <span class="tk-ct">enc(s_A)</span> (32B + <span class="tk-mac">16B tag</span>) ← Alice 정적키<br/>
+              <span class="tk-dh">se = DH(s_A, e_B)</span> → ck 갱신<br/>
+              <span class="tk-ct">enc(payload)</span> + <span class="tk-mac">16B tag</span>
+            </div>
+            <div class="note">핸드셰이크 종료. 양쪽 모두 <span class="tk-kk">k_send / k_recv</span> 도출 완료.</div>
+          </div>
+
+          <div class="msg" data-step="4">
+            <div class="arrow"><span>Transport 1: Alice → Bob</span><span class="step-num">4</span></div>
+            <div class="wire">
+              <span class="tk-ct">enc_k_send("hi Bob")</span> + <span class="tk-mac">16B tag</span><br/>
+              <span style="color:#475569">nonce = counter (헤더에 없음, 둘 다 카운트)</span>
+            </div>
+            <div class="note">헤더 없음. counter는 양쪽이 동기화. 매우 가벼움.</div>
+            <div class="server-sees"><span>길이 + 메타데이터. 본문/정적키 모두 비공개.</span></div>
+          </div>
+
+          <div class="msg" data-step="5">
+            <div class="arrow"><span>Transport 2: Bob → Alice</span><span class="step-num">5</span></div>
+            <div class="wire">
+              <span class="tk-ct">enc_k_recv("hi Alice")</span> + <span class="tk-mac">16B tag</span>
+            </div>
+            <div class="note" style="color:#34d399">
+              ✓ 세션 종료 후 ephemeral 키 폐기 → 정적키 유출돼도 이 세션 메시지는 복호화 불가 (Forward Secrecy)
+            </div>
+          </div>
+
+          <div class="state-box" id="state-noise">
+            <div class="label">세션 상태 (양쪽 동일)</div>
+            <div class="kv">ck (chaining key) ← ee, es, se 누적</div>
+            <div class="kv"><span class="tk-kk">k_send, k_recv</span> = HKDF(ck)</div>
+            <div class="kv" style="color:#34d399">세션 종료 시 ephemeral 폐기 → FS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ COL 3: SIGNAL ============ -->
+      <div class="col">
+        <h2>③ Signal <span style="font-size:13px;color:#94a3b8">(X3DH + Double Ratchet)</span></h2>
+        <span class="tag signal">X3DH + DR (WhatsApp, Signal)</span>
+        <p class="desc">
+          비동기 시작(상대 오프라인 OK) + <b>메시지마다 키 갱신</b>.
+          헤더에 새 ephemeral 공개키와 counter가 들어가 PCS(Post-Compromise Security) 제공.
+        </p>
+        <div class="messages" id="col-signal">
+          <div class="msg" data-step="1">
+            <div class="arrow"><span>X3DH: Alice가 서버에서 Bob 번들 fetch</span><span class="step-num">1</span></div>
+            <div class="wire">
+              prekey_bundle = {<br/>
+              &nbsp;&nbsp;<span class="tk-s">IK_B</span> (identity pub),<br/>
+              &nbsp;&nbsp;<span class="tk-s">SPK_B</span> (signed prekey) + <span class="tk-mac">Sig_IK_B</span>,<br/>
+              &nbsp;&nbsp;<span class="tk-e">OPK_B</span> (one-time prekey)<br/>
+              }
+            </div>
+            <div class="note">Bob이 미리 서버에 올려둔 키 묶음. Bob은 오프라인이어도 됨.</div>
+          </div>
+
+          <div class="msg" data-step="2">
+            <div class="arrow"><span>Initial: Alice → Bob (first msg)</span><span class="step-num">2</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;<span class="tk-s">IK_A</span> (32B),<br/>
+              &nbsp;&nbsp;<span class="tk-e">EK_A</span> (32B ephemeral),<br/>
+              &nbsp;&nbsp;OPK_B_id (어떤 OPK 썼는지),<br/>
+              &nbsp;&nbsp;header: { <span class="tk-e">DH_A0</span>, n=0, pn=0 },<br/>
+              &nbsp;&nbsp;<span class="tk-ct">enc(MK_0, "hi Bob")</span> + <span class="tk-mac">tag</span><br/>
+              }
+            </div>
+            <div class="note">
+              SK = KDF( DH(IK_A,SPK_B) ‖ DH(EK_A,IK_B) ‖ DH(EK_A,SPK_B) ‖ DH(EK_A,OPK_B) )<br/>
+              → 4번의 DH로 root key 도출
+            </div>
+          </div>
+
+          <div class="msg" data-step="3">
+            <div class="arrow"><span>Bob → Alice (응답 = 새 DH ratchet)</span><span class="step-num">3</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;header: { <span class="tk-e">DH_B0</span>, n=0, pn=1 },<br/>
+              &nbsp;&nbsp;<span class="tk-ct">enc(MK'_0, "hi Alice")</span> + <span class="tk-mac">tag</span><br/>
+              }
+            </div>
+            <div class="note">Bob이 새 ephemeral DH_B0 생성 → <span class="tk-kk">RK, CK</span> 한 단계 진행 (DH ratchet 발동).</div>
+          </div>
+
+          <div class="msg" data-step="4">
+            <div class="arrow"><span>Alice → Bob (같은 ratchet)</span><span class="step-num">4</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;header: { <span class="tk-e">DH_A1</span>, n=0, pn=1 },<br/>
+              &nbsp;&nbsp;<span class="tk-ct">enc(MK''_0, "어떻게 지내?")</span> + <span class="tk-mac">tag</span><br/>
+              }
+            </div>
+            <div class="note">Alice가 다시 새 DH_A1 → 또 한 번 DH ratchet. <b>매 turn마다 root key가 바뀜.</b></div>
+          </div>
+
+          <div class="msg" data-step="5">
+            <div class="arrow"><span>Alice → Bob (연속 발송)</span><span class="step-num">5</span></div>
+            <div class="wire">
+              {<br/>
+              &nbsp;&nbsp;header: { <span class="tk-e">DH_A1</span>, <b>n=1</b>, pn=1 },<br/>
+              &nbsp;&nbsp;<span class="tk-ct">enc(MK''_1, "잘 지내?")</span> + <span class="tk-mac">tag</span><br/>
+              }
+            </div>
+            <div class="note">
+              같은 DH ratchet이지만 <b>symmetric ratchet</b>으로 CK → CK', MK 새로 도출.<br/>
+              <span style="color:#34d399">MK는 매 메시지마다 폐기 → 이 메시지 키가 털려도 다음 메시지는 안전</span>
+            </div>
+          </div>
+
+          <div class="state-box" id="state-signal">
+            <div class="label">Alice의 상태 (지속 갱신)</div>
+            <div class="kv"><span class="tk-kk">RK</span> (root key) ← 매 DH ratchet마다 교체</div>
+            <div class="kv"><span class="tk-kk">CK_send, CK_recv</span> ← 매 메시지마다 KDF</div>
+            <div class="kv"><span class="tk-kk">MK_n</span> ← 메시지 암호화 후 즉시 삭제</div>
+            <div class="kv" style="color:#34d399">FS + PCS 둘 다 보장</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-summary">
+      <h3>요약</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>속성</th>
+            <th>Static (현재)</th>
+            <th>Noise XX</th>
+            <th>Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>핸드셰이크 RTT</td><td>0</td><td>1.5</td><td>0 (prekey 사용)</td></tr>
+          <tr><td>전송 메시지 크기 (data)</td><td>~50B</td><td>~30B</td><td>~90B (헤더 포함)</td></tr>
+          <tr><td>비동기 (상대 오프라인)</td><td class="yes">O</td><td class="no">✗</td><td class="yes">O</td></tr>
+          <tr><td>Forward Secrecy</td><td class="no">✗</td><td class="yes">O</td><td class="yes">O</td></tr>
+          <tr><td>Post-Compromise Security</td><td class="no">✗</td><td class="partial">부분</td><td class="yes">O</td></tr>
+          <tr><td>메시지마다 키 갱신</td><td class="no">✗</td><td class="no">✗</td><td class="yes">O</td></tr>
+          <tr><td>구현 난이도</td><td class="yes">낮음</td><td class="partial">중간</td><td class="no">높음</td></tr>
+          <tr><td>대표 적용 사례</td><td>NaCl 예제, 단순 E2EE</td><td>WireGuard, Lightning</td><td>Signal, WhatsApp, FB Messenger</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      const TOTAL_STEPS = 5;
+      let currentStep = 0;
+      let autoTimer = null;
+
+      const allMsgs = document.querySelectorAll('.msg');
+      const allStates = document.querySelectorAll('.state-box');
+      const stepInfo = document.getElementById('step-info');
+      const prevBtn = document.getElementById('prev');
+      const nextBtn = document.getElementById('next');
+      const resetBtn = document.getElementById('reset');
+      const autoBtn = document.getElementById('auto');
+
+      function render() {
+        allMsgs.forEach(m => {
+          const s = parseInt(m.dataset.step, 10);
+          m.classList.toggle('visible', s <= currentStep);
+          m.classList.toggle('active', s === currentStep);
+        });
+        allStates.forEach(s => s.classList.toggle('visible', currentStep >= TOTAL_STEPS));
+        stepInfo.textContent = `step ${currentStep} / ${TOTAL_STEPS}`;
+        prevBtn.disabled = currentStep === 0;
+        nextBtn.disabled = currentStep === TOTAL_STEPS;
+      }
+
+      function next() {
+        if (currentStep < TOTAL_STEPS) { currentStep++; render(); }
+      }
+      function prev() {
+        if (currentStep > 0) { currentStep--; render(); }
+      }
+      function reset() {
+        currentStep = 0; render();
+        if (autoTimer) { clearInterval(autoTimer); autoTimer = null; autoBtn.textContent = '▶ 자동 재생'; }
+      }
+      function toggleAuto() {
+        if (autoTimer) {
+          clearInterval(autoTimer); autoTimer = null;
+          autoBtn.textContent = '▶ 자동 재생';
+        } else {
+          autoBtn.textContent = '⏸ 일시정지';
+          autoTimer = setInterval(() => {
+            if (currentStep >= TOTAL_STEPS) {
+              clearInterval(autoTimer); autoTimer = null;
+              autoBtn.textContent = '▶ 자동 재생';
+            } else next();
+          }, 1800);
+        }
+      }
+
+      nextBtn.addEventListener('click', next);
+      prevBtn.addEventListener('click', prev);
+      resetBtn.addEventListener('click', reset);
+      autoBtn.addEventListener('click', toggleAuto);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+        if (e.key === 'r') reset();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

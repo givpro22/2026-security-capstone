@@ -1,7 +1,7 @@
 import json
 from typing import Dict
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
 from auth import decode_token
@@ -12,18 +12,11 @@ router = APIRouter()
 
 
 class ConnectionManager:
-    """Tracks live WebSocket connections by user_id.
-
-    For 1:1 chat: when A sends a message addressed to B,
-    if B is connected we relay; otherwise the ciphertext is stored
-    in the DB for later delivery on B's next connect."""
-
     def __init__(self) -> None:
         self.active: Dict[int, WebSocket] = {}
 
     async def connect(self, user_id: int, ws: WebSocket) -> None:
         await ws.accept()
-        # If the same user opens a second tab, drop the older socket.
         existing = self.active.get(user_id)
         if existing is not None:
             try:
@@ -52,7 +45,6 @@ manager = ConnectionManager()
 
 
 async def _flush_pending(user: User, db: Session) -> None:
-    """Send any queued (undelivered) messages to the newly-connected user."""
     pending = (
         db.query(Message)
         .filter(Message.recipient_id == user.id, Message.delivered == 0)
@@ -65,8 +57,8 @@ async def _flush_pending(user: User, db: Session) -> None:
             "type": "message",
             "id": msg.id,
             "from": sender.username if sender else "?",
-            "ciphertext": msg.ciphertext,
-            "nonce": msg.nonce,
+            "protocol": msg.protocol,
+            "payload": json.loads(msg.payload),
             "created_at": msg.created_at.isoformat(),
         }
         if await manager.send_to(user.id, payload):
@@ -101,17 +93,10 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     await ws.send_text(json.dumps({"type": "error", "detail": "invalid json"}))
                     continue
 
-                if data.get("type") != "message":
-                    await ws.send_text(json.dumps({"type": "error", "detail": "unknown type"}))
-                    continue
-
+                msg_type = data.get("type")
                 to_username = data.get("to")
-                ciphertext = data.get("ciphertext")
-                nonce = data.get("nonce")
-                if not (to_username and ciphertext and nonce):
-                    await ws.send_text(
-                        json.dumps({"type": "error", "detail": "missing fields"})
-                    )
+                if not to_username:
+                    await ws.send_text(json.dumps({"type": "error", "detail": "missing 'to'"}))
                     continue
 
                 recipient = db.query(User).filter(User.username == to_username).first()
@@ -121,12 +106,41 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     )
                     continue
 
-                # Persist ciphertext. Server never sees plaintext.
+                if msg_type == "handshake":
+                    # Live-relay only (no DB persist). Used for Noise XX.
+                    relay = {
+                        "type": "handshake",
+                        "from": user.username,
+                        "protocol": data.get("protocol"),
+                        "stage": data.get("stage"),
+                        "payload": data.get("payload"),
+                    }
+                    delivered = await manager.send_to(recipient.id, relay)
+                    await ws.send_text(json.dumps({
+                        "type": "handshake-ack",
+                        "to": recipient.username,
+                        "stage": data.get("stage"),
+                        "delivered": delivered,
+                    }))
+                    continue
+
+                if msg_type != "message":
+                    await ws.send_text(json.dumps({"type": "error", "detail": "unknown type"}))
+                    continue
+
+                protocol = data.get("protocol", "static")
+                payload_obj = data.get("payload")
+                if payload_obj is None:
+                    await ws.send_text(
+                        json.dumps({"type": "error", "detail": "missing payload"})
+                    )
+                    continue
+
                 msg = Message(
                     sender_id=user.id,
                     recipient_id=recipient.id,
-                    ciphertext=ciphertext,
-                    nonce=nonce,
+                    protocol=protocol,
+                    payload=json.dumps(payload_obj),
                 )
                 db.add(msg)
                 db.commit()
@@ -136,8 +150,8 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     "type": "message",
                     "id": msg.id,
                     "from": user.username,
-                    "ciphertext": ciphertext,
-                    "nonce": nonce,
+                    "protocol": protocol,
+                    "payload": payload_obj,
                     "created_at": msg.created_at.isoformat(),
                 }
                 delivered = await manager.send_to(recipient.id, out)
@@ -145,13 +159,13 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     msg.delivered = 1
                     db.commit()
 
-                # Echo back to sender so its UI can render its own message.
                 await ws.send_text(
                     json.dumps(
                         {
                             "type": "sent",
                             "id": msg.id,
                             "to": recipient.username,
+                            "protocol": protocol,
                             "created_at": msg.created_at.isoformat(),
                         }
                     )

@@ -27,6 +27,7 @@ export default function Login({ onAuthed }) {
         id: auth.user_id,
         username: auth.username,
         keypair: kp,
+        identityKeyPair: kp.identityKeyPair,
       })
     } catch (err) {
       setError(err.message || String(err))

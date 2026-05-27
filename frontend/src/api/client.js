@@ -49,5 +49,6 @@ export const api = {
   uploadPublicKey: (publicKey) =>
     request('POST', '/keys/me', { public_key: publicKey }),
   getPublicKey: (username) => request('GET', `/keys/${username}`),
+  getPrekeyBundle: (username) => request('GET', `/keys/${username}/bundle`),
   listUsers: () => request('GET', '/keys'),
 }

@@ -1,16 +1,13 @@
 import sodium from 'libsodium-wrappers'
 
-// X25519 keypair lifecycle.
+// Long-term X25519 identity keypair.
 //
-// On first login we generate a Curve25519 keypair. The private key is kept
-// in localStorage on the client; the public key is uploaded to the server
-// so other clients can encrypt messages to us. The server never sees the
-// private key, so it cannot read message contents.
+// All three protocols share this single long-term key:
+//   - Static: used directly as the box keypair.
+//   - Noise XX: the "s" (static) key in the handshake.
+//   - Signal: the IK (identity key) in X3DH.
 //
-// NOTE — for a learning project this is fine. For production you would:
-//   - protect the private key with a passphrase / WebCrypto-derived KEK
-//   - use ephemeral keys (Double Ratchet) for forward secrecy
-//   - publish signed prekey bundles instead of a single static key
+// Private key never leaves the browser (stored in localStorage).
 
 const STORAGE_PREFIX = 'e2ee-chat:'
 
@@ -28,10 +25,13 @@ export async function loadOrCreateKeypair(username) {
   const existing = localStorage.getItem(storageKey(username))
   if (existing) {
     const parsed = JSON.parse(existing)
+    const publicKey = sodium.from_base64(parsed.publicKey, sodium.base64_variants.ORIGINAL)
+    const privateKey = sodium.from_base64(parsed.privateKey, sodium.base64_variants.ORIGINAL)
     return {
-      publicKey: sodium.from_base64(parsed.publicKey, sodium.base64_variants.ORIGINAL),
-      privateKey: sodium.from_base64(parsed.privateKey, sodium.base64_variants.ORIGINAL),
+      publicKey,
+      privateKey,
       publicKeyB64: parsed.publicKey,
+      identityKeyPair: { publicKey, privateKey },
     }
   }
   const kp = sodium.crypto_box_keypair()
@@ -45,9 +45,11 @@ export async function loadOrCreateKeypair(username) {
     publicKey: kp.publicKey,
     privateKey: kp.privateKey,
     publicKeyB64,
+    identityKeyPair: { publicKey: kp.publicKey, privateKey: kp.privateKey },
   }
 }
 
 export function clearKeypair(username) {
   localStorage.removeItem(storageKey(username))
+  localStorage.removeItem(`signal:${username}:prekeys`)
 }
