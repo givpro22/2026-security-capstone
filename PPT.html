@@ -303,7 +303,7 @@
         z-index: 0;
       }
       .timeline-item {
-        width: 18%;
+        width: 22%;
         position: relative;
         z-index: 1;
         text-align: center;
@@ -319,6 +319,26 @@
         background: #22d3ee;
         border-radius: 50%;
         box-shadow: 0 0 15px #22d3ee;
+      }
+      .timeline-item.done::before {
+        background: #34d399;
+        box-shadow: 0 0 15px #34d399;
+      }
+      .timeline-item.future::before {
+        background: transparent;
+        border: 2px dashed #22d3ee;
+        box-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+      }
+      .timeline-item.done::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #0f172a;
+        font-size: 12px;
+        font-weight: 700;
+        z-index: 2;
       }
       .timeline-content {
         position: absolute;
@@ -384,6 +404,187 @@
         margin-top: 40px;
         font-size: 20px;
         color: #94a3b8;
+      }
+
+      /* Implementation slides: header field table + spec card */
+      .impl-spec {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 100%;
+        overflow: hidden;
+      }
+      .impl-spec .lead {
+        font-size: 15px;
+        color: #cbd5e1;
+        line-height: 1.45;
+      }
+      .impl-spec .lead strong { color: #22d3ee; }
+      .header-table {
+        background: rgba(2, 6, 23, 0.7);
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-family: "Courier New", monospace;
+      }
+      .header-table .htitle {
+        font-family: "Poppins", sans-serif;
+        font-size: 11px;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 4px;
+      }
+      .header-table .hrow {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 8px;
+        padding: 3px 0;
+        border-bottom: 1px dashed #1e293b;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+      .header-table .hrow:last-child { border-bottom: none; }
+      .header-table .hkey { color: #fbbf24; white-space: nowrap; }
+      .header-table .hval { color: #94a3b8; }
+      .lib-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.4);
+        color: #22d3ee;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-family: "Courier New", monospace;
+        max-width: 100%;
+      }
+      .lib-tag .label {
+        color: #94a3b8;
+        font-family: "Lato", sans-serif;
+        font-size: 11px;
+      }
+
+      /* Use-case slide layout */
+      .usecase-group {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+      }
+      .usecase-row {
+        background: rgba(30, 41, 59, 0.4);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 12px 16px;
+      }
+      .usecase-badge {
+        font-family: "Poppins", sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        display: inline-block;
+        margin-bottom: 10px;
+      }
+      .usecase-badge.signal { background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4); }
+      .usecase-badge.noise  { background: rgba(167, 139, 250, 0.15); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.4); }
+      .usecase-badge.other  { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.4); }
+      .usecase-tiles {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .usecase-tile {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .usecase-tile > i { font-size: 22px; }
+      .usecase-tile .t-logo {
+        width: 22px; height: 22px; object-fit: contain;
+      }
+      .usecase-tile .t-name {
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        color: #f1f5f9;
+      }
+      .usecase-tile .t-desc {
+        font-size: 11px;
+        color: #94a3b8;
+        line-height: 1.4;
+      }
+
+      /* Full wire screenshot — takes the entire slide */
+      .wire-fullshot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        gap: 10px;
+      }
+      .wire-fullshot .caption {
+        color: #94a3b8;
+        font-size: 14px;
+        line-height: 1.4;
+        text-align: center;
+        flex: 0 0 auto;
+      }
+      .wire-fullshot .caption strong { color: #22d3ee; }
+      .wire-fullshot .shot {
+        flex: 0 0 auto;
+        height: 510px;       /* fixed: 720 - 120 padding - 80 title - 30 caption/gap = ~490 +safety */
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        background: #020617;
+        overflow: hidden;
+      }
+      .wire-fullshot .shot img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+      }
+      /* Tighter title for full-shot slides so the image gets more room */
+      .slide-container .slide-title.compact {
+        font-size: 34px;
+        margin-bottom: 12px;
+      }
+
+      /* Cap image-wrapper inside impl two-column slides so tall screenshots
+         don't push the title above the slide, and force horizontal centering */
+      .slide-container[id^="slide-impl-"] .two-column .image-wrapper {
+        width: 100%;
+        max-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #020617;
+        margin: 0 auto;
+      }
+      .slide-container[id^="slide-impl-"] .two-column .image-wrapper img {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 500px;
+        object-fit: contain;
+        margin: 0 auto;
+        display: block;
       }
 
       /* PDF / print: 슬라이드 한 장 = PDF 한 페이지(16:9 가로) */
@@ -796,166 +997,71 @@
       </div>
     </div>
 
-    <div class="slide-container" id="slide11">
-      <h2 class="slide-title">순방향 보안(Forward Secrecy) 도입 계획</h2>
-      <div class="content-area">
-        <div class="tiled-content">
-          <div class="tile">
-            <div class="icon">
-              <i class="fa-solid fa-clock-rotate-left"></i>
-            </div>
-            <h3>과거 보호</h3>
-            <p>
-              미래에 암호 키가 유출되더라도 과거의 대화 내용은 절대 복호화할 수
-              없도록 보장
-            </p>
-          </div>
-          <div class="tile">
-            <div class="icon"><i class="fa-solid fa-trash-can"></i></div>
-            <h3>일회용 키 사용</h3>
-            <p>
-              메시지 전송마다 새로운 세션 키를 생성하고 사용 후 즉시 폐기하는
-              메커니즘
-            </p>
-          </div>
-          <div class="tile">
-            <div class="icon"><i class="fa-solid fa-hammer"></i></div>
-            <h3>구현 전략</h3>
-            <p>
-              Noise Protocol의 XX 패턴을 기반으로 한 일시적 DH 키 교환 방식 적용
-              예정
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="slide-container" id="slide12">
-      <h2 class="slide-title">Double Ratchet 도입 계획</h2>
-      <div class="content-area">
-        <div class="two-column highlight-numbers-layout">
-          <div style="text-align: center">
-            <div class="number">2</div>
-            <div class="number-label">동시 작동 래칫</div>
-          </div>
-          <div>
-            <h3>"보안을 멈추지 않는 톱니바퀴"</h3>
-            <p>
-              <strong>1. KDF 래칫:</strong> 메시지 한 건마다 암호 키를 한 칸씩
-              진행시킵니다.
-            </p>
-            <p>
-              <strong>2. DH 래칫:</strong> 대화가 오고 갈 때마다 완전히 새로운
-              키 쌍으로 갱신하여 보안 수준을 초기화합니다.
-            </p>
-            <p>
-              이 두 가지가 결합되어 해커가 중간에 키를 하나 훔쳐도 다음 메시지는
-              다시 풀 수 없는 강력한 복구력을 가집니다.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="slide-container" id="slide13">
-      <h2 class="slide-title">오프라인 메시지 암호화 설계</h2>
-      <div class="content-area">
-        <div class="two-column">
-          <div>
-            <div class="image-wrapper" style="border-radius: 24px">
-              <img
-                src="http://googleusercontent.com/image_collection/image_retrieval/4078869415607296342"
-                alt="Security Shield"
-              />
-            </div>
-          </div>
-          <div>
-            <h3>선불키(PreKeys) 시스템</h3>
-            <p>상대가 접속 중이 아닐 때도 보안 채팅을 시작하는 방법입니다.</p>
-            <ul style="list-style: none; padding: 0">
-              <li style="margin-bottom: 15px">
-                <i
-                  class="fa-solid fa-upload"
-                  style="color: #22d3ee; margin-right: 10px"
-                ></i>
-                사용자가 미리 일회용 공개키를 서버에 업로드
-              </li>
-              <li style="margin-bottom: 15px">
-                <i
-                  class="fa-solid fa-envelope-open-text"
-                  style="color: #22d3ee; margin-right: 10px"
-                ></i>
-                발신자는 서버에서 이 키를 가져와 첫 메시지 암호화
-              </li>
-              <li>
-                <i
-                  class="fa-solid fa-key"
-                  style="color: #22d3ee; margin-right: 10px"
-                ></i>
-                수신자는 나중에 접속하여 자신의 비밀키로 복호화
-              </li>
-            </ul>
-            <p style="margin-top: 20px">
-              <strong>X3DH 프로토콜</strong>을 통해 이를 구현할 예정입니다.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="slide-container" id="slide14">
-      <h2 class="slide-title">실제 E2EE 적용 사례</h2>
+      <h2 class="slide-title">실제 E2EE 적용 사례 — Signal · Noise</h2>
       <div class="content-area">
-        <div class="tiled-content">
-          <div class="image-tile">
-            <div class="image-wrapper">
-              <img
-                src="http://googleusercontent.com/image_collection/image_retrieval/6567768298563671096"
-                alt="Signal and WhatsApp"
-              />
+        <div class="usecase-group">
+          <div class="usecase-row">
+            <div class="usecase-badge signal">Signal Protocol (X3DH + Double Ratchet)</div>
+            <div class="usecase-tiles">
+              <div class="usecase-tile">
+                <i class="fa-solid fa-comment-dots" style="color:#38bdf8"></i>
+                <div class="t-name">Signal</div>
+                <div class="t-desc">프로토콜 원조. 전 세계 활동가·기자가 표준으로 사용</div>
+              </div>
+              <div class="usecase-tile">
+                <i class="fa-brands fa-whatsapp" style="color:#25D366"></i>
+                <div class="t-name">WhatsApp</div>
+                <div class="t-desc">20억+ 사용자 전체 메시지·통화에 기본 적용 (2016~)</div>
+              </div>
+              <div class="usecase-tile">
+                <i class="fa-brands fa-facebook-messenger" style="color:#0084FF"></i>
+                <div class="t-name">Facebook Messenger</div>
+                <div class="t-desc">'비밀 대화' 모드, 2023년 말부터 기본 E2EE로 전환</div>
+              </div>
             </div>
-            <p>
-              <strong>Signal & WhatsApp:</strong> 프로토콜의 원조이자 가장
-              광범위한 사용자 기반
-            </p>
           </div>
-          <div class="image-tile">
-            <div
-              class="image-wrapper"
-              style="
-                background: #1e293b;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 80px;
-                color: #38bdf8;
-              "
-            >
-              <i class="fa-brands fa-facebook-messenger"></i>
+
+          <div class="usecase-row">
+            <div class="usecase-badge noise">Noise Protocol Framework</div>
+            <div class="usecase-tiles">
+              <div class="usecase-tile">
+                <i class="fa-solid fa-shield-halved" style="color:#22d3ee"></i>
+                <div class="t-name">WireGuard</div>
+                <div class="t-desc">Linux 커널 VPN. Noise_IKpsk2 패턴으로 핸드셰이크</div>
+              </div>
+              <div class="usecase-tile">
+                <i class="fa-solid fa-bolt" style="color:#fbbf24"></i>
+                <div class="t-name">Lightning Network</div>
+                <div class="t-desc">비트코인 결제 채널 (BOLT 8). Noise_XK 사용</div>
+              </div>
+              <div class="usecase-tile">
+                <i class="fa-brands fa-slack" style="color:#a78bfa"></i>
+                <div class="t-name">Slack Nebula</div>
+                <div class="t-desc">사내 메시 VPN. Noise_IX 패턴 채택</div>
+              </div>
             </div>
-            <p>
-              <strong>Messenger:</strong> '비밀 대화' 모드를 통해 Signal
-              Protocol 선택적 적용
-            </p>
           </div>
-          <div class="image-tile">
-            <div
-              class="image-wrapper"
-              style="
-                background: #1e293b;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 80px;
-                color: #22d3ee;
-              "
-            >
-              <i class="fa-solid fa-shield"></i>
+
+          <div class="usecase-row">
+            <div class="usecase-badge other">국내 / 자체 프로토콜 — 참고</div>
+            <div class="usecase-tiles">
+              <div class="usecase-tile">
+                <img src="assets/kakao.png" alt="KakaoTalk" class="t-logo" />
+                <div class="t-name">카카오톡 비밀채팅</div>
+                <div class="t-desc">자체 LOCO-end-to-end. 디바이스 간 RSA + AES (Signal 미사용)</div>
+              </div>
+              <div class="usecase-tile">
+                <i class="fa-brands fa-telegram" style="color:#26A5E4"></i>
+                <div class="t-name">Telegram Secret Chat</div>
+                <div class="t-desc">자체 MTProto 2.0. 학계에서 일부 비판 있음</div>
+              </div>
+              <div class="usecase-tile">
+                <i class="fa-solid fa-envelope-open-text" style="color:#94a3b8"></i>
+                <div class="t-name">이메일 (PGP/S-MIME)</div>
+                <div class="t-desc">FS 없음. Static 정적 키 방식의 대표 사례</div>
+              </div>
             </div>
-            <p>
-              <strong>WireGuard:</strong> Noise Protocol을 활용한 고성능 VPN
-              보안 구축
-            </p>
           </div>
         </div>
       </div>
@@ -998,86 +1104,363 @@
     <div class="slide-container" id="slide16">
       <h2 class="slide-title">시스템 아키텍처 및 데이터 흐름</h2>
       <div class="content-area">
-        <div class="two-column">
-          <div>
-            <h3>"Zero-Knowledge" 서버 설계</h3>
-            <p>
-              1. 모든 <strong>암호화와 복호화</strong>는 클라이언트(React)
-              브라우저 내에서 수행됩니다.
+        <div class="two-column" style="align-items: stretch;">
+          <div style="display: flex; flex-direction: column; justify-content: center;">
+            <h3 style="color:#22d3ee; margin-bottom: 14px;">"Zero-Knowledge" 서버 설계</h3>
+            <p style="font-size: 16px;">
+              1. <strong>모든 암호화/복호화는 브라우저</strong>에서 수행 (React + libsodium-wrappers-sumo)
             </p>
-            <p>
-              2. 서버는 오직 <strong>암호문(Ciphertext)</strong>만 전달하며
-              평문에 절대 접근할 수 없습니다.
+            <p style="font-size: 16px;">
+              2. 서버(FastAPI)는 <strong>opaque payload만 중계</strong> — 평문도, 키 도출 과정도 보지 못함
             </p>
-            <p>
-              3. <strong>비밀키</strong>는 서버로 전송되지 않고 클라이언트의
-              Local Storage에 안전하게 보관됩니다.
+            <p style="font-size: 16px;">
+              3. <strong>비밀키는 localStorage</strong>에만 저장. 공개키만 서버에 업로드
+            </p>
+            <p style="font-size: 16px;">
+              4. WebSocket으로 실시간 중계 + 오프라인 시 SQLite에 ciphertext 큐잉
             </p>
           </div>
-          <div class="image-wrapper">
-            <img
-              src="http://googleusercontent.com/image_collection/image_retrieval/15562057512299389504"
-              alt="System Architecture"
-            />
+          <div style="display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 620 540" style="width: 100%; max-width: 620px; height: auto;">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee" />
+                </marker>
+                <linearGradient id="gradAlice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#1e293b" />
+                  <stop offset="1" stop-color="#0f172a" />
+                </linearGradient>
+              </defs>
+
+              <!-- Alice browser -->
+              <g>
+                <rect x="10" y="10" width="220" height="170" rx="12" fill="url(#gradAlice)" stroke="#22d3ee" stroke-width="1.5"/>
+                <text x="120" y="38" text-anchor="middle" fill="#22d3ee" font-family="Poppins" font-size="14" font-weight="600">Alice — Browser</text>
+                <rect x="30" y="55" width="180" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+                <text x="120" y="75" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Courier New">Static · Noise · Signal</text>
+                <rect x="30" y="92" width="180" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+                <text x="120" y="112" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="Courier New">priv key (localStorage)</text>
+                <rect x="30" y="129" width="180" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+                <text x="120" y="149" text-anchor="middle" fill="#34d399" font-size="11" font-family="Courier New">React UI · WebSocket</text>
+              </g>
+
+              <!-- Bob browser -->
+              <g>
+                <rect x="390" y="10" width="220" height="170" rx="12" fill="url(#gradAlice)" stroke="#22d3ee" stroke-width="1.5"/>
+                <text x="500" y="38" text-anchor="middle" fill="#22d3ee" font-family="Poppins" font-size="14" font-weight="600">Bob — Browser</text>
+                <rect x="410" y="55" width="180" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+                <text x="500" y="75" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Courier New">Static · Noise · Signal</text>
+                <rect x="410" y="92" width="180" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+                <text x="500" y="112" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="Courier New">priv key (localStorage)</text>
+                <rect x="410" y="129" width="180" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+                <text x="500" y="149" text-anchor="middle" fill="#34d399" font-size="11" font-family="Courier New">React UI · WebSocket</text>
+              </g>
+
+              <!-- arrows between browsers and server (in the gap) -->
+              <line x1="120" y1="185" x2="245" y2="270" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="135" y="245" fill="#22d3ee" font-size="11" font-family="Courier New">{ ct, header... }</text>
+
+              <line x1="375" y1="270" x2="500" y2="185" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="400" y="245" fill="#22d3ee" font-size="11" font-family="Courier New">{ ct, header... }</text>
+
+              <!-- Server -->
+              <g>
+                <rect x="220" y="275" width="180" height="115" rx="12" fill="#020617" stroke="#a78bfa" stroke-width="1.5"/>
+                <text x="310" y="302" text-anchor="middle" fill="#a78bfa" font-family="Poppins" font-size="14" font-weight="600">FastAPI Server</text>
+                <text x="310" y="328" text-anchor="middle" fill="#94a3b8" font-size="11">WebSocket relay</text>
+                <text x="310" y="352" text-anchor="middle" fill="#f87171" font-size="11">opaque payload만</text>
+                <text x="310" y="372" text-anchor="middle" fill="#f87171" font-size="11">(평문/키 모름)</text>
+              </g>
+
+              <!-- dashed link to DB -->
+              <line x1="310" y1="395" x2="310" y2="425" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+              <!-- DB cylinder (clean: filled body + side lines + visible curves only) -->
+              <g>
+                <!-- Filled body region -->
+                <path d="M 255 425 L 255 478 A 55 12 0 0 0 365 478 L 365 425 A 55 12 0 0 1 255 425 Z" fill="#0f172a" />
+                <!-- Side strokes -->
+                <line x1="255" y1="425" x2="255" y2="478" stroke="#475569" stroke-width="1"/>
+                <line x1="365" y1="425" x2="365" y2="478" stroke="#475569" stroke-width="1"/>
+                <!-- Top ellipse (visible cap) -->
+                <ellipse cx="310" cy="425" rx="55" ry="12" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+                <!-- Bottom curve only -->
+                <path d="M 255 478 A 55 12 0 0 0 365 478" fill="none" stroke="#475569" stroke-width="1"/>
+                <text x="310" y="460" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Poppins">SQLite</text>
+                <text x="310" y="510" text-anchor="middle" fill="#64748b" font-size="11">offline queue (ciphertext)</text>
+              </g>
+            </svg>
           </div>
         </div>
       </div>
     </div>
 
     <div class="slide-container" id="slide17">
-      <h2 class="slide-title">구현 로드맵 (6주)</h2>
+      <h2 class="slide-title">구현 로드맵 (3월 ~ 6월)</h2>
       <div class="content-area">
         <div class="timeline-layout">
           <div class="timeline-line"></div>
-          <div class="timeline-item">
+          <div class="timeline-item done">
             <div class="timeline-content">
-              <h3>1주차</h3>
-              <p>기본 인프라 구축<br />회원가입/인증/Socket</p>
+              <h3>3월</h3>
+              <p>프로젝트 기획<br />FastAPI + React + SQLite 인프라<br />JWT 인증 / WebSocket</p>
             </div>
           </div>
-          <div class="timeline-item">
+          <div class="timeline-item done">
             <div class="timeline-content">
-              <h3>2주차</h3>
-              <p>Noise Protocol 도입<br />기본 E2EE 구현</p>
+              <h3>4월</h3>
+              <p>Static E2EE 구현<br />(X25519 + crypto_box)<br />로그인/채팅 UI 완성</p>
             </div>
           </div>
-          <div class="timeline-item">
+          <div class="timeline-item done">
             <div class="timeline-content">
-              <h3>3주차</h3>
-              <p>Double Ratchet 구현<br />메시지 단위 보안</p>
+              <h3>5월</h3>
+              <p>Noise XX 핸드셰이크 구현<br />Signal X3DH + Double Ratchet<br />Wire Inspector + 3-프로토콜 비교</p>
             </div>
           </div>
-          <div class="timeline-item">
+          <div class="timeline-item future">
             <div class="timeline-content">
-              <h3>4주차</h3>
-              <p>X3DH 연동<br />오프라인 메시지 지원</p>
-            </div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-content">
-              <h3>5-6주차</h3>
-              <p>UI 폴리싱 및<br />문서화 완료</p>
+              <h3>6월</h3>
+              <p><strong style="color:#22d3ee">실제 서비스에 적용</strong><br />다중 기기 동기화<br />그룹 채팅 확장</p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="slide-container" id="slide18">
-      <h2 class="slide-title">프로젝트의 의의</h2>
+    <!-- ============ Implementation Demo Slides ============ -->
+
+    <div class="slide-container" id="slide-impl-1">
+      <h2 class="slide-title">구현 — 메인 페이지 (Login / Chat)</h2>
       <div class="content-area">
-        <div class="quote-layout">
-          <blockquote>
-            "프라이버시는 선택이 아니라 인간의 기본적인 권리입니다. 기술은 이를
-            증명하고 보호할 수 있어야 합니다."
-          </blockquote>
-          <cite style="color: #22d3ee; font-size: 22px; font-weight: 600"
-            >— 프로젝트 설계 철학</cite
-          >
-          <p style="margin-top: 50px; color: #94a3b8">
-            단순한 채팅 앱을 넘어, 최신 암호학이 어떻게 우리의 일상 대화를<br />보호하는지
-            코드 레벨에서 증명하는 과정이 될 것입니다.
+        <div class="two-column">
+          <div class="image-wrapper">
+            <img src="assets/loginpage.png" alt="Login / Chat main page" />
+          </div>
+          <div class="impl-spec">
+            <p class="lead">
+              하나의 채팅 앱에서 <strong>Static · Noise XX · Signal</strong> 세
+              프로토콜을 드롭다운으로 전환하며 <strong>같은 시나리오</strong>를
+              비교할 수 있도록 설계.
+            </p>
+            <div class="header-table">
+              <div class="htitle">주요 구성 요소</div>
+              <div class="hrow">
+                <span class="hkey">Login / Signup</span>
+                <span class="hval">JWT 토큰 + bcrypt 해시</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">키 관리</span>
+                <span class="hval">X25519 키쌍 (priv: localStorage, pub: 서버)</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">프로토콜 선택</span>
+                <span class="hval">방마다 드롭다운으로 전환</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">Wire Inspector</span>
+                <span class="hval">실제 송수신 바이트를 실시간 표시</span>
+              </div>
+            </div>
+            <div>
+              <span class="lib-tag">
+                <span class="label">Frontend</span>React · Vite · libsodium-wrappers-sumo
+              </span>
+            </div>
+            <div>
+              <span class="lib-tag">
+                <span class="label">Backend</span>FastAPI · WebSocket · SQLite
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-container" id="slide-impl-2-full">
+      <h2 class="slide-title compact">Static — 실제 와이어 인스펙터</h2>
+      <div class="content-area">
+        <div class="wire-fullshot">
+          <p class="caption">
+            매 메시지 = <strong>ciphertext</strong> + <strong>nonce</strong>(24B 랜덤). 헤더·카운터 없음.
           </p>
+          <div class="shot">
+            <img src="assets/staticprotocol.png" alt="Static protocol full wire" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-container" id="slide-impl-2">
+      <h2 class="slide-title">Static — X25519 정적 키 (현재 베이스라인)</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <div class="image-wrapper">
+            <img src="assets/static프로토콜디테일.png" alt="Static protocol detail" />
+          </div>
+          <div class="impl-spec">
+            <p class="lead">
+              사용자마다 <strong>X25519 키쌍 한 개</strong>를 영구 보관.
+              핸드셰이크 없이 매 메시지마다 새 nonce와 ciphertext만 전송.
+            </p>
+            <div class="header-table">
+              <div class="htitle">와이어 필드</div>
+              <div class="hrow">
+                <span class="hkey">ciphertext</span>
+                <span class="hval">평문 + 16B Poly1305 MAC (base64)</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">nonce</span>
+                <span class="hval">24B 랜덤 (재사용 금지)</span>
+              </div>
+            </div>
+            <div class="header-table">
+              <div class="htitle">특징</div>
+              <div class="hrow">
+                <span class="hkey">장점</span>
+                <span class="hval">단순, 비동기 OK, 오버헤드 최소</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">한계</span>
+                <span class="hval">Forward Secrecy 없음 — 키 유출 시 모든 과거 메시지 노출</span>
+              </div>
+            </div>
+            <div>
+              <span class="lib-tag">
+                <span class="label">라이브러리</span>libsodium · crypto_box (X25519 + XSalsa20-Poly1305)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-container" id="slide-impl-3-full">
+      <h2 class="slide-title compact">Noise XX — 실제 와이어 인스펙터</h2>
+      <div class="content-area">
+        <div class="wire-fullshot">
+          <p class="caption">
+            <strong>3-msg 핸드셰이크</strong> 이후 transport는 <strong>counter + ct</strong>만
+          </p>
+          <div class="shot">
+            <img src="assets/noise프로토콜.png" alt="Noise protocol full wire" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-container" id="slide-impl-3">
+      <h2 class="slide-title">Noise XX — 상호 인증 핸드셰이크 + Transport</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <div class="image-wrapper">
+            <img src="assets/noise프로토콜디테일.png" alt="Noise XX detail" />
+          </div>
+          <div class="impl-spec">
+            <p class="lead">
+              <strong>3-message 핸드셰이크</strong>로 ephemeral 키 교환 + 정적
+              키 상호 인증. 이후 transport는 헤더 없이 카운터 기반 nonce로만
+              암호화.
+            </p>
+            <div class="header-table">
+              <div class="htitle">핸드셰이크 (1.5 RTT)</div>
+              <div class="hrow">
+                <span class="hkey">→ msg1</span>
+                <span class="hval">e (32B ephemeral pub)</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">← msg2</span>
+                <span class="hval">e, ee, s(암호화), es</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">→ msg3</span>
+                <span class="hval">s, se → Split → k_send / k_recv</span>
+              </div>
+            </div>
+            <div class="header-table">
+              <div class="htitle">Transport</div>
+              <div class="hrow">
+                <span class="hkey">counter</span>
+                <span class="hval">양쪽이 카운트 (implicit nonce)</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">ct + tag</span>
+                <span class="hval">ChaCha20-Poly1305(k_send, ...)</span>
+              </div>
+            </div>
+            <div>
+              <span class="lib-tag">
+                <span class="label">구현</span>libsodium 직접 조합 (crypto_scalarmult / HKDF / AEAD)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-container" id="slide-impl-4-full">
+      <h2 class="slide-title compact">Signal — 실제 와이어 인스펙터</h2>
+      <div class="content-area">
+        <div class="wire-fullshot">
+          <p class="caption">
+            첫 msg = <strong>X3DH preamble</strong>, 이후 매 msg = <strong>header(dh/n/pn) + ct</strong>
+          </p>
+          <div class="shot">
+            <img src="assets/signal프로토콜.png" alt="Signal protocol full wire" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-container" id="slide-impl-4">
+      <h2 class="slide-title">Signal — X3DH + Double Ratchet</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <div class="image-wrapper">
+            <img src="assets/signal프로토콜디테일.png" alt="Signal detail" />
+          </div>
+          <div class="impl-spec">
+            <p class="lead">
+              <strong>비동기 세션 시작 (X3DH)</strong> + <strong>매 메시지마다
+              키 갱신 (Double Ratchet)</strong>. Forward Secrecy + Post-Compromise
+              Security 양쪽 모두 제공.
+            </p>
+            <div class="header-table">
+              <div class="htitle">X3DH (첫 메시지 preamble)</div>
+              <div class="hrow">
+                <span class="hkey">IK_A / EK_A</span>
+                <span class="hval">송신자 identity + ephemeral pub</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">opk_id</span>
+                <span class="hval">소비한 OPK 번호 → SK = KDF(4×DH)</span>
+              </div>
+            </div>
+            <div class="header-table">
+              <div class="htitle">Double Ratchet</div>
+              <div class="hrow">
+                <span class="hkey">header.dh</span>
+                <span class="hval">DH ratchet 공개키 — 답장마다 새로</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">header.n</span>
+                <span class="hval">같은 DH 내 메시지 번호</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">header.pn</span>
+                <span class="hval">직전 turn 메시지 수 (out-of-order)</span>
+              </div>
+              <div class="hrow">
+                <span class="hkey">ct + tag</span>
+                <span class="hval">MK로 AEAD (MK는 1회 후 폐기)</span>
+              </div>
+            </div>
+            <div>
+              <span class="lib-tag">
+                <span class="label">구현</span>libsodium + 자체 X3DH/DR 로직 (~350 LOC)
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
